@@ -88,7 +88,7 @@ const (
 	// ServiceType tag
 	ServiceType = "SERVICE_TYPE"
 	// PluginService represents the csi-plugin type.
-	PluginService = "plugin"
+	PluginService = "local"
 	// ProvisionerService represents the csi-provisioner type.
 	ProvisionerService = "provisioner"
 	// InstallSnapshotCRD tag

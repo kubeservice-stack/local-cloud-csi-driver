@@ -28,7 +28,7 @@ spec:
       containers:
         - name: driver-registrar
           image: dongjiang1989/csi-node-driver-registrar:v1.1.0
-          imagePullPolicy: Always
+          imagePullPolicy: "IfNotPresent"
           lifecycle:
             preStop:
               exec:
@@ -56,7 +56,7 @@ spec:
               add: ["SYS_ADMIN"]
             allowPrivilegeEscalation: true
           image: dongjiang1989/local-csi-plugin:v1.0.0
-          imagePullPolicy: "Always"
+          imagePullPolicy: "IfNotPresent"
           args :
             - "--endpoint=$(CSI_ENDPOINT)"
             - "--v=5"
