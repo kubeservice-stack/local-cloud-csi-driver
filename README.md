@@ -168,24 +168,38 @@ lvm-29def33c-8dae-482f-8d64-c45e741facd9   2Gi        RWO            Delete     
 
 ```bash
 $ kubectl get pod | grep deployment-lvm
-deployment-lvm-64657b57b6-wdnwj   1/1     Running   0          21m
+deployment-lvm-57bc9bcd64-j7r9x   1/1     Running   0          77s
 
-$ kubectl exec -ti deployment-lvm-64657b57b6-wdnwj sh
-$ df -h | grep data
-/dev/mapper/volumegroup1-pvc--0762fd86--5156--11e9--983f--00163e0b8d64  2.9G  9.0M  2.8G   1% /data
+$ kubectl exec -ti deployment-lvm-57bc9bcd64-j7r9x   sh
+kubectl exec [POD] [COMMAND] is DEPRECATED and will be removed in a future version. Use kubectl exec [POD] -- [COMMAND] instead.
+# df -h | grep data
+/dev/mapper/volumegroup1-lvm--9e30e658--5f85--4ec6--ada2--c4ff308b506e  2.0G  6.0M  1.8G   1% /data
 ```
 
 检查主机中的目录：
+```bash
+$ kubectl describe pod deployment-lvm-57bc9bcd64-j7r9x | grep Node:
+Node:         kcs-cpu-test-m-8mzmj/172.16.0.67
 
-# kubectl describe pod deployment-lvm-64657b57b6-wdnwj | grep Node:
-Node:               izbp1cs36nqp29umu67zslz/192.168.1.11
-
-# ifconfig | grep 192.168.1.11
-        inet 192.168.1.11  netmask 255.255.255.0  broadcast 192.168.1.255
-
-# lvdisplay  | grep pvc
-  LV Path                /dev/volumegroup1/pvc-0762fd86-5156-11e9-983f-00163e0b8d64
-  LV Name                pvc-0762fd86-5156-11e9-983f-00163e0b8d64
+$ ifconfig | grep 172.16.0.67
+        inet 172.16.0.67  netmask 255.255.0.0  broadcast 172.16.255.255
   
-# mount | grep volumegroup
-/dev/mapper/volumegroup1-pvc--0762fd86--5156--11e9--983f--00163e0b8d64 on /var/lib/kubelet/pods/f48f3715-515d-11e9-983f-00163e0b8d64/volumes/kubernetes.io~csi/pvc-0762fd86-5156-11e9-983f-00163e0b8d64/mount type ext4 (rw,relatime,data=ordered)
+$ mount | grep volumegroup
+/dev/mapper/volumegroup1-lvm--9e30e658--5f85--4ec6--ada2--c4ff308b506e on /var/lib/kubelet/pods/c06d5521-3d9c-4517-bdc2-e6df34b9e8f1/volumes/kubernetes.io~csi/lvm-9e30e658-5f85-4ec6-ada2-c4ff308b506e/mount type ext4 (rw,relatime,data=ordered)
+/dev/mapper/volumegroup1-lvm--9e30e658--5f85--4ec6--ada2--c4ff308b506e on /var/lib/paascontainer/kubelet/pods/c06d5521-3d9c-4517-bdc2-e6df34b9e8f1/volumes/kubernetes.io~csi/lvm-9e30e658-5f85-4ec6-ada2-c4ff308b506e/mount type ext4 (rw,relatime,data=ordered)
+```
+
+检查pod disk iops和bps设置，是否生效：
+```bash
+$ pwd
+/sys/fs/cgroup/blkio/kubepods.slice/kubepods-besteffort.slice/kubepods-besteffort-podc06d5521_3d9c_4517_bdc2_e6df34b9e8f1.slice
+
+$ cat blkio.throttle.read_bps_device 
+253:1 10000
+$ cat blkio.throttle.write_bps_device 
+253:1 5000
+$ cat blkio.throttle.write_iops_device 
+253:1 1000
+$ cat blkio.throttle.read_iops_device 
+253:1 2000
+```

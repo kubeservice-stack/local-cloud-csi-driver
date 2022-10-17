@@ -21,12 +21,26 @@ import (
 	"fmt"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/container-storage-interface/spec/lib/go/csi"
 	log "github.com/sirupsen/logrus"
 )
+
+var (
+	targetPathRe = regexp.MustCompile(`[\\|\/]+pods[\\|\/]+(.+?)[\\|\/]+volumes[\\|\/]+kubernetes.io~csi[\\|\/]+(.+?)[\\|\/]+mount$`)
+)
+
+// GetPodUIDFromTargetPath returns podUID from targetPath
+func GetPodUIDFromTargetPath(targetPath string) string {
+	match := targetPathRe.FindStringSubmatch(targetPath)
+	if len(match) < 2 {
+		return ""
+	}
+	return match[1]
+}
 
 // SetVolumeIOLimit config io limit for device
 func SetVolumeIOLimit(devicePath string, req *csi.NodePublishVolumeRequest) error {
@@ -76,7 +90,7 @@ func SetVolumeIOLimit(devicePath string, req *csi.NodePublishVolumeRequest) erro
 	}
 
 	// Get pod uid
-	podUID := req.VolumeContext["csi.storage.k8s.io/pod.uid"]
+	podUID := GetPodUIDFromTargetPath(req.GetTargetPath())
 	if podUID == "" {
 		log.Errorf("Volume(%s) Cannot get poduid and cannot set volume limit", req.VolumeId)
 		return errors.New("Cannot get poduid and cannot set volume limit: " + req.VolumeId)

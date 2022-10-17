@@ -195,7 +195,7 @@ func (ns *nodeServer) NodePublishVolume(ctx context.Context, req *csi.NodePublis
 		// Set volume IO Limit
 		err = utils.SetVolumeIOLimit(devicePath, req)
 		if err != nil {
-			log.Errorf("NodePublishVolume: Set Disk Volume(%s) IO Limit with Error: %s", req.VolumeId, err.Error())
+			log.Errorf("NodePublishVolume: Set Disk Volume(%s), req(%v) IO Limit with Error: %s", req.VolumeId, req.GetVolumeContext(), err.Error())
 			return nil, status.Error(codes.Internal, err.Error())
 
 		}

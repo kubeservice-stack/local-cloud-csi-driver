@@ -55,8 +55,7 @@ spec:
             capabilities:
               add: ["SYS_ADMIN"]
             allowPrivilegeEscalation: true
-          image: dongjiang1989/local-csi-plugin:v1.0.0
-          imagePullPolicy: "IfNotPresent"
+          image: dongjiang1989/local-csi-plugin:latest
           args :
             - "--endpoint=$(CSI_ENDPOINT)"
             - "--v=5"
