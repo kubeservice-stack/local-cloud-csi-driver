@@ -191,6 +191,14 @@ func (ns *nodeServer) NodePublishVolume(ctx context.Context, req *csi.NodePublis
 		if err != nil {
 			return nil, status.Error(codes.Internal, err.Error())
 		}
+
+		// Set volume IO Limit
+		err = utils.SetVolumeIOLimit(devicePath, req)
+		if err != nil {
+			log.Errorf("NodePublishVolume: Set Disk Volume(%s) IO Limit with Error: %s", req.VolumeId, err.Error())
+			return nil, status.Error(codes.Internal, err.Error())
+
+		}
 		log.Infof("NodePublishVolume:: mount successful devicePath: %s, targetPath: %s, options: %v", devicePath, targetPath, options)
 	}
 
@@ -243,13 +251,6 @@ func (ns *nodeServer) NodePublishVolume(ctx context.Context, req *csi.NodePublis
 			}
 			log.Infof("NodePublishVolume: upgrade Persistent Volume(%s) with nodeAffinity: %s", volumeID, ns.nodeID)
 		}
-	}
-
-	// Set volume IO Limit
-	err = utils.SetVolumeIOLimit(devicePath, req)
-	if err != nil {
-		log.Errorf("NodePublishVolume: Set Disk Volume(%s) IO Limit with Error: %s", req.VolumeId, err.Error())
-		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	return &csi.NodePublishVolumeResponse{}, nil

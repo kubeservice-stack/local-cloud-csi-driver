@@ -6,8 +6,10 @@ provisioner: local.csi.ecloud.cmss.com
 parameters:
     vgName: volumegroup1
     fsType: ext4
-    readIOPS: 2000
-    writeIOPS: 1000
-    readBPS: 10M
-    writeBPS: 5M
+    pvType: localdisk
+    nodeAffinity: "false"
+    readIOPS: "2000"
+    writeIOPS: "1000"
+    readBPS: "10000"
+    writeBPS: "5000"
 reclaimPolicy: Delete
