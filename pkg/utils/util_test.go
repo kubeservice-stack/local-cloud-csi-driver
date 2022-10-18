@@ -118,7 +118,6 @@ func RemoveContents(dir string) error {
 }
 
 func WriteTestContent(path string) string {
-
 	d1 := []byte(`{"mountfile": "tmp/ecloudcsiplugin.json","runtime":"runv"}`)
 	os.MkdirAll(path, 0777)
 	fileName := fmt.Sprintf("%s/%s", path, CsiPluginRunTimeFlagFile)
@@ -127,6 +126,12 @@ func WriteTestContent(path string) string {
 		panic(err)
 	}
 	return fileName
+}
+
+func TestIsHostFileExist(t *testing.T) {
+	assert := assert.New(t)
+	aa := IsHostFileExist("tmp/ecloudcsiplugin.json")
+	assert.True(aa)
 }
 
 /*

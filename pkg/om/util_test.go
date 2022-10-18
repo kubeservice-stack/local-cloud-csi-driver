@@ -14,20 +14,29 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package options
+package om
 
 import (
-	"flag"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
-var (
-	// Kubeconfig is the path to kubeconfig file
-	Kubeconfig string
-	// MasterURL is the url of kube-apiserver
-	MasterURL string
-)
+func TestIsFileExisting(t *testing.T) {
+	assert := assert.New(t)
+	has := IsFileExisting("/tmp/asdfasdfasdfas")
+	assert.False(has)
+}
 
-func init() {
-	flag.StringVar(&Kubeconfig, "kubeconfig", "", "the path to kubeconfig file")
-	flag.StringVar(&MasterURL, "master-url", "", "the url of kube-apiserver")
+func TestReadFileLinesFromHost(t *testing.T) {
+	assert := assert.New(t)
+	aa := ReadFileLinesFromHost("/tmp/")
+	assert.Equal(aa, []string{""})
+}
+
+func TestRun(t *testing.T) {
+	assert := assert.New(t)
+	aa, err := Run("cat /tmp/asdfasdfasdfas")
+	assert.NotNil(err)
+	assert.Equal(aa, "")
 }

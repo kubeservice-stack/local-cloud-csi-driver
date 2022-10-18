@@ -14,20 +14,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package options
+package utils
 
 import (
-	"flag"
+	"os"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
-var (
-	// Kubeconfig is the path to kubeconfig file
-	Kubeconfig string
-	// MasterURL is the url of kube-apiserver
-	MasterURL string
-)
+func TestGlobalENV(t *testing.T) {
+	assert := assert.New(t)
+	os.Setenv("KUBELET_ROOT_DIR", "/tmp1")
+	os.Setenv("TLS_MOUNT_DIR", "/tmp2")
 
-func init() {
-	flag.StringVar(&Kubeconfig, "kubeconfig", "", "the path to kubeconfig file")
-	flag.StringVar(&MasterURL, "master-url", "", "the url of kube-apiserver")
+	assert.Equal(KubeletRootDir, "/var/lib/kubelet")
+	assert.Equal(MountPathWithTLS, "/tls")
 }

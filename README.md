@@ -12,8 +12,7 @@ Lvm 是基于主机的，而不是您的应用程序的高可用性解决方案�
 
 ## 功能状态
 
-编译打包
-`local.csi.ecloud.cmss.com` 可以编译成容器的形式。
+编译打包 `local.csi.ecloud.cmss.com` 可以编译成容器的形式。
 
 构建容器：
 
