@@ -163,7 +163,8 @@ lvm-29def33c-8dae-482f-8d64-c45e741facd9   2Gi        RWO            Delete     
 ```
 
 第 6 步：检查 pod 的状态
-检查 pod 中的目录
+
+检查 pod 中的目录 & csi 日志
 
 ```bash
 $ kubectl get pod | grep deployment-lvm
@@ -173,6 +174,14 @@ $ kubectl exec -ti deployment-lvm-57bc9bcd64-j7r9x   sh
 kubectl exec [POD] [COMMAND] is DEPRECATED and will be removed in a future version. Use kubectl exec [POD] -- [COMMAND] instead.
 # df -h | grep data
 /dev/mapper/volumegroup1-lvm--9e30e658--5f85--4ec6--ada2--c4ff308b506e  2.0G  6.0M  1.8G   1% /data
+
+$ kubectl logs csi-lvm-plugin-97j9w  -n kube-system -c csi-lvmplugin
+
+I1018 06:04:43.278422  178966 utils.go:98] GRPC request: {"staging_target_path":"/var/lib/kubelet/plugins/kubernetes.io/csi/pv/lvm-9e30e658-5f85-4ec6-ada2-c4ff308b506e/globalmount","target_path":"/var/lib/kubelet/pods/5a9403b9-b1ba-4ffe-acf0-2414086c5cf9/volumes/kubernetes.io~csi/lvm-9e30e658-5f85-4ec6-ada2-c4ff308b506e/mount","volume_capability":{"AccessType":{"Mount":{"fs_type":"ext4"}},"access_mode":{"mode":1}},"volume_context":{"fsType":"ext4","nodeAffinity":"false","pvType":"localdisk","readBPS":"10000","readIOPS":"2000","storage.kubernetes.io/csiProvisionerIdentity":"1665995111679-8081-local.csi.ecloud.cmss.com","vgName":"volumegroup1","writeBPS":"5000","writeIOPS":"1000"},"volume_id":"lvm-9e30e658-5f85-4ec6-ada2-c4ff308b506e"}
+time="2022-10-18T06:04:43Z" level=info msg="Mount /dev/volumegroup1/lvm-9e30e658-5f85-4ec6-ada2-c4ff308b506e to /var/lib/kubelet/pods/5a9403b9-b1ba-4ffe-acf0-2414086c5cf9/volumes/kubernetes.io~csi/lvm-9e30e658-5f85-4ec6-ada2-c4ff308b506e/mount with fsType ext4, the command is mount [-t ext4 -o rw /dev/volumegroup1/lvm-9e30e658-5f85-4ec6-ada2-c4ff308b506e /var/lib/kubelet/pods/5a9403b9-b1ba-4ffe-acf0-2414086c5cf9/volumes/kubernetes.io~csi/lvm-9e30e658-5f85-4ec6-ada2-c4ff308b506e/mount]"
+time="2022-10-18T06:04:43Z" level=info msg="Seccessful Set Volume(lvm-9e30e658-5f85-4ec6-ada2-c4ff308b506e) IO Limit: readIOPS(2000), writeIOPS(1000), readBPS(10000), writeBPS(5000)"
+time="2022-10-18T06:04:43Z" level=info msg="NodePublishVolume:: mount successful devicePath: /dev/volumegroup1/lvm-9e30e658-5f85-4ec6-ada2-c4ff308b506e, targetPath: /var/lib/kubelet/pods/5a9403b9-b1ba-4ffe-acf0-2414086c5cf9/volumes/kubernetes.io~csi/lvm-9e30e658-5f85-4ec6-ada2-c4ff308b506e/mount, options: [rw]"
+
 ```
 
 检查主机中的目录：
