@@ -13,3 +13,5 @@ parameters:
     readBPS: "10000"
     writeBPS: "5000"
 reclaimPolicy: Delete
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
