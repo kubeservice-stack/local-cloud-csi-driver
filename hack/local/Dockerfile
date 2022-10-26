@@ -1,6 +1,9 @@
 # Build the manager binary
 FROM golang:1.18.5-alpine as builder
 
+MAINTAINER dongjiang1989@126.com
+LABEL blog="https://kubeservice.cn"
+
 RUN apk add --no-cache gcc musl-dev libc6-compat
 
 WORKDIR /workspace
@@ -13,10 +16,13 @@ COPY pkg/ pkg/
 COPY hack/ hack/
 COPY vendor/ vendor/
 
-# Build
+# package image
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-linkmode external -extldflags -static" -o local-cloud-csi-driver ./main.go
 
 FROM ubuntu:20.04
+
+MAINTAINER dongjiang1989@126.com
+LABEL blog="https://kubeservice.cn"
 
 RUN apt update && apt upgrade -y && apt install -y ca-certificates file tzdata lvm2
 
