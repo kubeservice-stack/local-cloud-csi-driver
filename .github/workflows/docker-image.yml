@@ -29,8 +29,7 @@ jobs:
         name: Build and push
         uses: docker/build-push-action@v3
         with:
-          context: .
+          context: ../hack/local
           platforms: linux/amd64,linux/arm64
-          file: ./hack/local/Dockerfile
           push: true
           tags: dongjiang1989/local-csi-plugin:latest
