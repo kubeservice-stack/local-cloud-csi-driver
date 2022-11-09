@@ -30,6 +30,6 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
-          file: ./hack/local/Dockerfile
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: dongjiang1989/local-csi-plugin:latest
