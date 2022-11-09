@@ -27,4 +27,4 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           push: true
-          tags: dongjiang1989/network-dockor:latest
+          tags: dongjiang1989/local-csi-plugin:latest
