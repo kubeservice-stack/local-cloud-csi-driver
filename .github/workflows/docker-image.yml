@@ -3,6 +3,8 @@ name: local-cloud-csi-driver
 on:
   push:
     branches: [ "master" ]
+    tags:
+      - v*
   pull_request:
     branches: [ "master" ]
 
@@ -30,7 +32,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
-          file: ./hack/local/Dockerfile
-          platforms: linux/amd64,linux/arm64
+          file: /hack/local/Dockerfile
+          platforms: linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/ppc64le,linux/s390x
           push: true
           tags: dongjiang1989/local-csi-plugin:latest
