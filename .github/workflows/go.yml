@@ -1,0 +1,141 @@
+name: Go
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch: {}
+  pull_request:
+    branches:
+      - master
+
+env:
+  # Common versions
+  GO_VERSION: '1.19'
+  GOLANGCI_VERSION: 'v1.49'
+
+jobs:
+
+  detect-noop:
+    runs-on: ubuntu-20.04
+    outputs:
+      noop: ${{ steps.noop.outputs.should_skip }}
+    steps:
+      - name: Detect No-op Changes
+        id: noop
+        uses: fkirc/skip-duplicate-actions@v4.0.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          paths_ignore: '["**.md", "**.mdx", "**.png", "**.jpg"]'
+          do_not_skip: '["workflow_dispatch", "schedule", "push"]'
+          concurrent_skipping: false
+
+  staticcheck:
+    runs-on: ubuntu-20.04
+    needs: detect-noop
+    if: needs.detect-noop.outputs.noop != 'true'
+
+    steps:
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: Cache Go Dependencies
+        uses: actions/cache@v2
+        with:
+          path: .work/pkg
+          key: ${{ runner.os }}-pkg-${{ hashFiles('**/go.sum') }}
+          restore-keys: ${{ runner.os }}-pkg-
+
+      - name: Install StaticCheck
+        run: go install honnef.co/go/tools/cmd/staticcheck@2022.1
+
+      - name: Static Check
+        run: staticcheck ./...
+
+      - name: License Header Check
+        run: make check-license-header
+
+  lint:
+    runs-on: ubuntu-20.04
+    needs: detect-noop
+    if: needs.detect-noop.outputs.noop != 'true'
+
+    steps:
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: Cache Go Dependencies
+        uses: actions/cache@v2
+        with:
+          path: .work/pkg
+          key: ${{ runner.os }}-pkg-${{ hashFiles('**/go.sum') }}
+          restore-keys: ${{ runner.os }}-pkg-
+
+      # This action uses its own setup-go, which always seems to use the latest
+      # stable version of Go. We could run 'make lint' to ensure our desired Go
+      # version, but we prefer this action because it leaves 'annotations' (i.e.
+      # it comments on PRs to point out linter violations).
+      - name: Lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: ${{ env.GOLANGCI_VERSION }}
+
+  check-diff:
+    runs-on: aliyun
+    needs: detect-noop
+    if: needs.detect-noop.outputs.noop != 'true'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Setup node
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+
+      - name: Install StaticCheck
+        run: go install honnef.co/go/tools/cmd/staticcheck@2022.1
+
+      - name: Cache Go Dependencies
+        uses: actions/cache@v2
+        with:
+          path: .work/pkg
+          key: ${{ runner.os }}-pkg-${{ hashFiles('**/go.sum') }}
+          restore-keys: ${{ runner.os }}-pkg-
+
+      - name: Check code formatting
+        run: go install golang.org/x/tools/cmd/goimports && make fmt
+
+      - name: Run cross-build
+        run: make cross-build
+
+      - name: Check Diff
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.49.0
+          export PATH=$(pwd)/bin/:$PATH
+          make check-diff
+              
+      - name: Cleanup binary
+        run: make build-cleanup
