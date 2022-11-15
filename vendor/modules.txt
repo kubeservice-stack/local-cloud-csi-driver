@@ -10,8 +10,8 @@ github.com/go-logr/logr
 # github.com/go-ping/ping v0.0.0-20201022122018-3977ed72668a
 ## explicit; go 1.14
 github.com/go-ping/ping
-# github.com/gogo/protobuf v1.3.1
-## explicit
+# github.com/gogo/protobuf v1.3.2
+## explicit; go 1.15
 github.com/gogo/protobuf/proto
 github.com/gogo/protobuf/sortkeys
 # github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
@@ -43,8 +43,8 @@ github.com/google/gofuzz
 # github.com/google/uuid v1.1.2
 ## explicit
 github.com/google/uuid
-# github.com/googleapis/gnostic v0.1.0
-## explicit
+# github.com/googleapis/gnostic v0.4.1
+## explicit; go 1.12
 github.com/googleapis/gnostic/OpenAPIv2
 github.com/googleapis/gnostic/compiler
 github.com/googleapis/gnostic/extensions
@@ -214,8 +214,6 @@ google.golang.org/protobuf/types/known/anypb
 google.golang.org/protobuf/types/known/durationpb
 google.golang.org/protobuf/types/known/timestamppb
 google.golang.org/protobuf/types/known/wrapperspb
-# gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15
-## explicit
 # gopkg.in/inf.v0 v0.9.1
 ## explicit
 gopkg.in/inf.v0
@@ -491,7 +489,7 @@ k8s.io/klog
 # k8s.io/klog/v2 v2.9.0
 ## explicit; go 1.13
 k8s.io/klog/v2
-# k8s.io/kube-openapi v0.0.0-20200410145947-61e04a5be9a6 => k8s.io/kube-openapi v0.0.0-20190306001800-15615b16d372
+# k8s.io/kube-openapi v0.0.0-20200805222855-6aeccd4b50c6 => k8s.io/kube-openapi v0.0.0-20190306001800-15615b16d372
 ## explicit
 k8s.io/kube-openapi/pkg/util/proto
 # k8s.io/kubernetes v1.18.8 => k8s.io/kubernetes v1.18.6
