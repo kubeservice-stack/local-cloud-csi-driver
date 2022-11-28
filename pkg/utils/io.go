@@ -96,11 +96,20 @@ func SetVolumeIOLimit(devicePath string, req *csi.NodePublishVolumeRequest) erro
 		return errors.New("Cannot get poduid and cannot set volume limit: " + req.VolumeId)
 	}
 	// /sys/fs/cgroup/blkio/kubepods.slice/kubepods-besteffort.slice/kubepods-besteffort-podaadcc749_6776_4933_990d_d50f260f5d46.slice/blkio.throttle.write_bps_device
-	podUID = strings.ReplaceAll(podUID, "-", "_")
-	podBlkIOPath := filepath.Join("/sys/fs/cgroup/blkio/kubepods.slice/kubepods-besteffort.slice", "kubepods-besteffort-pod"+podUID+".slice")
+	podUIDReplace := strings.ReplaceAll(podUID, "-", "_")
+	podBlkIOPath := filepath.Join("/sys/fs/cgroup/blkio/kubepods.slice/kubepods-besteffort.slice", "kubepods-besteffort-pod"+podUIDReplace+".slice")
 	if !IsHostFileExist(podBlkIOPath) {
-		podBlkIOPath = filepath.Join("/sys/fs/cgroup/blkio/kubepods.slice/kubepods-burstable.slice", "kubepods-besteffort-pod"+podUID+".slice")
+		podBlkIOPath = filepath.Join("/sys/fs/cgroup/blkio/kubepods.slice/kubepods-burstable.slice", "kubepods-besteffort-pod"+podUIDReplace+".slice")
 	}
+	// /sys/fs/cgroup/blkio/kubepods/besteffort/pod13e0457a-bb6a-4190-a67b-fd34cfb441c9/blkio.throttle.write_bps_device
+	if !IsHostFileExist(podBlkIOPath) {
+		podBlkIOPath = filepath.Join("/sys/fs/cgroup/blkio/kubepods/besteffort", "pod"+podUID)
+	}
+
+	if !IsHostFileExist(podBlkIOPath) {
+		podBlkIOPath = filepath.Join("/sys/fs/cgroup/blkio/kubepods/burstable", "pod"+podUID)
+	}
+
 	if !IsHostFileExist(podBlkIOPath) {
 		log.Errorf("Volume(%s), Cannot get pod blkio/cgroup path: %s", req.VolumeId, podBlkIOPath)
 		return errors.New("Cannot get pod blkio/cgroup path: " + podBlkIOPath)
