@@ -13,7 +13,7 @@ env:
 
 jobs:
   generate-jobs:
-    name: lxcfs
+    name: local-csi-plugin
     runs-on: ubuntu-latest
     strategy: 
       fail-fast: false
