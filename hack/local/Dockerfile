@@ -17,7 +17,7 @@ COPY hack/ hack/
 COPY vendor/ vendor/
 
 # package image
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-linkmode external -extldflags -static" -o local-cloud-csi-driver ./main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags "-linkmode external -extldflags -static" -o local-cloud-csi-driver ./main.go
 
 FROM ubuntu:20.04
 
