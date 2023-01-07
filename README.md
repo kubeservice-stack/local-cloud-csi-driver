@@ -1,4 +1,4 @@
-# local-cloud-csi-driver
+# 本地磁盘限速: 带宽限流BPS 和 请求限速 IOPS
 
 ## 背景
 
@@ -108,15 +108,18 @@ $ vgdisplay
 
 ### 执行步骤
 第 1 步：创建 `CSI Provisioner`
+
 ```bash
 $ kubectl create -f ./deploy/local/provisioner.yaml
 ```
 第 2 步：创建 `CSI` 插件
+
 ```bash
 $ kubectl create -f ./deploy/local/plugin.yaml
 ```
 
 第 3 步：创建存储类
+
 ```bash
 $ kubectl create -f ./examples/storageclass.yaml
 apiVersion: storage.k8s.io/v1
@@ -135,29 +138,28 @@ parameters:
     writeBPS: "5000"
 reclaimPolicy: Delete
 ```
+
 用法：
 
-vgName：定义存储类的卷组名；
-
-fsType：默认为ext4，定义lvm文件系统类型，支持ext4、ext3、xfs；
-
-pvType：可选，默认为云盘。定义使用的物理磁盘类型，支持clouddisk、localdisk；
-
-nodeAffinity：可选，默认为 true。决定是否在 PV 中添加 nodeAffinity。
-----> true：默认，使用 nodeAffinity 配置创建 PV；
-----> false：不配置nodeAffinity创建PV，pod可以调度到任意节点
-
-volumeBindingMode：支持 Immediate/WaitForFirstConsumer 
-----> Immediate：表示将在创建 pvc 时配置卷，在此配置中 nodeAffinity 将可用；
-----> WaitForFirstConsumer：表示在相关的pod创建之前不会创建volume；在配置中，nodeAffinity 将不可用；
+* `vgName`：定义存储类的卷组名；
+* `fsType`：默认为`ext4`，定义lvm文件系统类型，支持`ext4`、`ext3`、`xfs`；
+* `pvType`：可选，默认为云盘。定义使用的物理磁盘类型，支持`clouddisk`、`localdisk`；
+* `nodeAffinity`：可选，默认为 `true`。决定是否在 `PV` 中添加 `nodeAffinity`。
+	* `true`：默认，使用 `nodeAffinity` 配置创建 `PV`；
+	* `false`：不配置`nodeAffinity`创建`PV`，`pod`可以调度到任意节点
+* `volumeBindingMode`：支持 `Immediate` 和 `WaitForFirstConsumer` 
+	* `Immediate`：表示将在创建 `pvc` 时配置卷，在此配置中 `nodeAffinity` 将可用；
+	* `WaitForFirstConsumer`：表示在相关的`pod`创建之前不会创建`volume`；在配置中，`nodeAffinity` 将不可用；
 
 第 4 步：使用 `lvm` 创建 `nginx` 部署
+
 ```bash
 $ kubectl create -f ./examples/pvc.yaml
 $ kubectl create -f ./examples/deploy.yaml
 ```
 
 第 5 步：检查 PVC/PV 的状态
+
 ```bash
 $ kubectl get pvc
 NAME      STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
@@ -170,7 +172,7 @@ lvm-29def33c-8dae-482f-8d64-c45e741facd9   2Gi        RWO            Delete     
 
 第 6 步：检查 pod 的状态
 
-检查 pod 中的目录 & csi 日志
+6.1 检查 pod 中的目录 & csi 日志
 
 ```bash
 $ kubectl get pod | grep deployment-lvm
@@ -190,7 +192,8 @@ time="2022-10-18T06:04:43Z" level=info msg="NodePublishVolume:: mount successful
 
 ```
 
-检查主机中的目录：
+6.2 检查主机中的目录：
+
 ```bash
 $ kubectl describe pod deployment-lvm-57bc9bcd64-j7r9x | grep Node:
 Node:         kcs-cpu-test-m-8mzmj/172.16.0.67
@@ -203,7 +206,8 @@ $ mount | grep volumegroup
 /dev/mapper/volumegroup1-lvm--9e30e658--5f85--4ec6--ada2--c4ff308b506e on /var/lib/paascontainer/kubelet/pods/c06d5521-3d9c-4517-bdc2-e6df34b9e8f1/volumes/kubernetes.io~csi/lvm-9e30e658-5f85-4ec6-ada2-c4ff308b506e/mount type ext4 (rw,relatime,data=ordered)
 ```
 
-检查pod disk iops和bps设置，是否生效：
+6.3 检查pod disk iops和bps设置，是否生效：
+
 ```bash
 $ pwd
 /sys/fs/cgroup/blkio/kubepods.slice/kubepods-besteffort.slice/kubepods-besteffort-podc06d5521_3d9c_4517_bdc2_e6df34b9e8f1.slice

@@ -25,6 +25,7 @@ import (
 	"strings"
 
 	"github.com/container-storage-interface/spec/lib/go/csi"
+	volume "github.com/kata-containers/kata-containers/src/runtime/pkg/direct-volume"
 	"github.com/kubernetes-csi/drivers/pkg/csi-common"
 	"github.com/kubeservice-stack/local-cloud-csi-driver/pkg/options"
 	"github.com/kubeservice-stack/local-cloud-csi-driver/pkg/utils"
@@ -67,6 +68,7 @@ const (
 	// DefaultFs default fs
 	DefaultFs = "ext4"
 	// DefaultNA default NodeAffinity
+	DirectTag = "direct"
 	DefaultNA = "true"
 	// TopologyNodeKey tag
 	TopologyNodeKey = "topology.local.csi.ecloud.cmss.com/hostname"
@@ -78,6 +80,7 @@ type nodeServer struct {
 	mounter    utils.Mounter
 	client     kubernetes.Interface
 	k8smounter k8smount.Interface
+	isDirect   bool
 }
 
 var (
@@ -103,16 +106,42 @@ func NewNodeServer(d *csicommon.CSIDriver, nodeID string) csi.NodeServer {
 		mounter:           utils.NewMounter(),
 		k8smounter:        k8smount.New(""),
 		client:            kubeClient,
+		isDirect:          false,
 	}
 }
 
 func (ns *nodeServer) GetNodeID() string {
 	return ns.nodeID
 }
+func (ns *nodeServer) addDirectVolume(volumePath, device, fsType string) error {
+	mountInfo := volume.MountInfo{
+		VolumeType: "block",
+		Device:     device,
+		FsType:     fsType,
+	}
+
+	mi, err := json.Marshal(mountInfo)
+	if err != nil {
+		log.Error("addDirectVolume - json.Marshal failed: ", err.Error())
+		return status.Errorf(codes.Internal, "json.Marshal failed: %s", err.Error())
+	}
+
+	if err := volume.Add(volumePath, string(mi)); err != nil {
+		log.Error("addDirectVolume - add direct volume failed: ", err.Error())
+		return status.Errorf(codes.Internal, "add direct volume failed: %s", err.Error())
+	}
+
+	log.Infof("add direct volume done: %s %s", volumePath, string(mi))
+	return nil
+}
 
 func (ns *nodeServer) NodePublishVolume(ctx context.Context, req *csi.NodePublishVolumeRequest) (*csi.NodePublishVolumeResponse, error) {
 	log.Infof("NodePublishVolume:: req, %v", req)
-
+	// Step 1: check
+	volumeID := req.GetVolumeId()
+	if len(volumeID) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "NodePublishVolume: Volume ID not provided")
+	}
 	// parse request args.
 	targetPath := req.GetTargetPath()
 	if targetPath == "" {
@@ -143,8 +172,18 @@ func (ns *nodeServer) NodePublishVolume(ctx context.Context, req *csi.NodePublis
 	}
 	log.Infof("NodePublishVolume: Starting to mount lvm at: %s, with vg: %s, with volume: %s, PV type: %s, LVM type: %s", targetPath, vgName, req.GetVolumeId(), pvType, lvmType)
 
+	// check if the volume is a direct-assigned volume, direct volume will be used as virtio-blk
+	ns.isDirect = false
+	if val, ok := req.VolumeContext[DirectTag]; ok {
+		var err error
+		ns.isDirect, err = strconv.ParseBool(val)
+		if err != nil {
+			ns.isDirect = false
+		}
+	}
+
 	volumeNewCreated := false
-	volumeID := req.GetVolumeId()
+	volumeID = req.GetVolumeId()
 	devicePath := filepath.Join("/dev/", vgName, volumeID)
 	if _, err := os.Stat(devicePath); os.IsNotExist(err) {
 		volumeNewCreated = true
@@ -152,6 +191,17 @@ func (ns *nodeServer) NodePublishVolume(ctx context.Context, req *csi.NodePublis
 		if err != nil {
 			return nil, status.Error(codes.Internal, err.Error())
 		}
+	}
+
+	// Step 4: direct
+	if ns.isDirect {
+		if err := ns.addDirectVolume(targetPath, devicePath, fsType); err != nil {
+			log.Error("addDirectVolume failed: ", err.Error())
+			return nil, status.Errorf(codes.Internal, "addDirectVolume failed: %s", err.Error())
+		}
+
+		log.Infof("NodePublishVolume: add kata direct volume %s to %s successfully", volumeID, targetPath)
+		return &csi.NodePublishVolumeResponse{}, nil
 	}
 
 	isMnt, err := ns.mounter.IsMounted(targetPath)
@@ -257,7 +307,24 @@ func (ns *nodeServer) NodePublishVolume(ctx context.Context, req *csi.NodePublis
 }
 
 func (ns *nodeServer) NodeUnpublishVolume(ctx context.Context, req *csi.NodeUnpublishVolumeRequest) (*csi.NodeUnpublishVolumeResponse, error) {
+	// Step 1: check
+	volumeID := req.GetVolumeId()
+	if len(volumeID) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "NodeUnpublishVolume: Volume ID not provided")
+	}
 	targetPath := req.GetTargetPath()
+	if targetPath == "" {
+		return nil, status.Error(codes.Internal, "NodeUnpublishVolume: targetPath is empty")
+	}
+	log.Infof("NodeUnpublishVolume: start to umount target path %s for volume %s", targetPath, volumeID)
+
+	// Step 2: umount
+	if ns.isDirect {
+		if err := volume.Remove(targetPath); err != nil {
+			log.Errorf("NodeUnpublishVolume: kata direct volume remove failed: %s", err.Error())
+		}
+	}
+
 	isMnt, err := ns.mounter.IsMounted(targetPath)
 	if err != nil {
 		if _, err := os.Stat(targetPath); os.IsNotExist(err) {
