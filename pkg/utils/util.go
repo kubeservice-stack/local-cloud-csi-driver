@@ -656,7 +656,7 @@ func GetNodeIP(client kubernetes.Interface, nodeID string) (net.IP, error) {
 		SetNodeAddrMap(nodeID, addresses[0].Address)
 		return net.ParseIP(addresses[0].Address), nil
 	}
-	return nil, fmt.Errorf("Node IP unknown; known addresses: %v", addresses)
+	return nil, fmt.Errorf("node ip unknown; known addresses: %v", addresses)
 }
 
 // CheckParameterValidate is check parameter validating in csi-plugin
