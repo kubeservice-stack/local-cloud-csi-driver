@@ -104,8 +104,7 @@ const (
 	socketPath = "/host/etc/csi-tool/connector.sock"
 )
 
-// KubernetesAlicloudIdentity set a identity label
-var KubernetesAlicloudIdentity = fmt.Sprintf("Kubernetes.Alicloud/CsiPlugin")
+var KubernetesAlicloudIdentity = "Kubernetes.Alicloud/CsiPlugin"
 
 var (
 	// NodeAddrMap map for NodeID and its Address
@@ -646,8 +645,8 @@ func GetNodeIP(client kubernetes.Interface, nodeID string) (net.IP, error) {
 	}
 	addresses := node.Status.Addresses
 	addressMap := make(map[v1.NodeAddressType][]v1.NodeAddress)
-	for i := range addresses {
-		addressMap[addresses[i].Type] = append(addressMap[addresses[i].Type], addresses[i])
+	for _, v := range addresses {
+		addressMap[v.Type] = append(addressMap[v.Type], v)
 	}
 	if addresses, ok := addressMap[v1.NodeInternalIP]; ok {
 		SetNodeAddrMap(nodeID, addresses[0].Address)
@@ -663,7 +662,11 @@ func GetNodeIP(client kubernetes.Interface, nodeID string) (net.IP, error) {
 // CheckParameterValidate is check parameter validating in csi-plugin
 func CheckParameterValidate(inputs []string) bool {
 	for _, input := range inputs {
-		if matched, err := regexp.MatchString("^[A-Za-z0-9=._@:~/-]*$", input); err != nil || !matched {
+		re, err := regexp.Compile(`^[A-Za-z0-9=._@:~/-]*$`)
+		if err != nil {
+			return false
+		}
+		if matched := re.MatchString(input); !matched {
 			return false
 		}
 	}
@@ -733,7 +736,7 @@ func ConnectorRun(cmd string) (string, error) {
 	}
 
 	buf := make([]byte, 2048)
-	n, err := c.Read(buf[:])
+	n, _ := c.Read(buf[:])
 	response := string(buf[0:n])
 	if strings.HasPrefix(response, "Success") {
 		respstr := response[8:]

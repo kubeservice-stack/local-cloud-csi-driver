@@ -79,12 +79,12 @@ func CheckMessageFileIssue() {
 		// Fix Block Volume Reference Issue;
 		if GlobalConfigVar.IssueBlockReference && strings.Contains(line, "is still referenced from other Pods") {
 			if FixReferenceMountIssue(line) {
-
+				return
 			}
 			// Fix Orphaned Pod Issue
 		} else if GlobalConfigVar.IssueOrphanedPod && strings.Contains(line, "rphaned pod") && strings.Contains(line, "found, but volume paths are still present on disk") {
 			if FixOrphanedPodIssue(line) {
-
+				return
 			}
 		}
 	}

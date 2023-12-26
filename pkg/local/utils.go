@@ -98,18 +98,6 @@ func checkFSType(devicePath string) (string, error) {
 	return "", ErrParse
 }
 
-func isVgExist(vgName string) (bool, error) {
-	vgCmd := fmt.Sprintf("%s vgdisplay %s | grep 'VG Name' | grep %s | grep -v grep | wc -l", NsenterCmd, vgName, vgName)
-	vgline, err := utils.Run(vgCmd)
-	if err != nil {
-		return false, err
-	}
-	if strings.TrimSpace(vgline) == "1" {
-		return true, nil
-	}
-	return false, nil
-}
-
 func getLocalDeviceNum() (int, error) {
 	return 0, nil
 }

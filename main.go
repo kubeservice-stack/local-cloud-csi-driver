@@ -60,12 +60,9 @@ const (
 )
 
 var (
-	endpoint        = flag.String("endpoint", "unix://tmp/csi.sock", "CSI endpoint")
-	nodeID          = flag.String("nodeid", "", "node id")
-	runAsController = flag.Bool("run-as-controller", false, "Only run as controller service")
-	driver          = flag.String("driver", TypePluginLocal, "CSI Driver")
-	// Deprecated: rootDir is instead by KUBELET_ROOT_DIR env.
-	rootDir = flag.String("rootdir", "/var/lib/kubelet/csi-plugins", "Kubernetes root directory")
+	endpoint = flag.String("endpoint", "unix://tmp/csi.sock", "CSI endpoint")
+	nodeID   = flag.String("nodeid", "", "node id")
+	driver   = flag.String("driver", TypePluginLocal, "CSI Driver")
 )
 
 // CSI Plugin
@@ -162,7 +159,7 @@ func setLogAttribute(driver string) {
 		return
 	}
 
-	os.MkdirAll(LogfilePrefix, os.FileMode(0755))
+	_ = os.MkdirAll(LogfilePrefix, os.FileMode(0755))
 	logFile := LogfilePrefix + driver + ".log"
 	f, err := os.OpenFile(logFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {

@@ -52,6 +52,7 @@ func TestGetBpsLimt(t *testing.T) {
 
 	bps, err = getBpsLimt("aa")
 	assert.NotNil(err)
+	assert.Equal(bps, 0)
 }
 
 func TestSetVolumeIOLimit(t *testing.T) {

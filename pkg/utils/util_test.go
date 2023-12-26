@@ -51,7 +51,7 @@ func TestResultStatus(t *testing.T) {
 
 func TestCreateDest(t *testing.T) {
 	existsPath := "./tmp/test1/"
-	os.MkdirAll(existsPath, 0777)
+	_ = os.MkdirAll(existsPath, 0777)
 	normalPath := "./tmp/test2"
 
 	err := CreateDest(existsPath)
@@ -59,7 +59,8 @@ func TestCreateDest(t *testing.T) {
 	err = CreateDest(normalPath)
 	assert.Nil(t, err)
 
-	RemoveContents(MacUnmountedPath)
+	err = RemoveContents(MacUnmountedPath)
+	assert.Nil(t, err)
 }
 
 func TestIsMounted(t *testing.T) {
@@ -95,7 +96,8 @@ func TestIsMountPointRunv(t *testing.T) {
 	WriteTestContent(MacCSIPluginFlag)
 	assert.True(t, IsMountPointRunv(MacCSIPluginFlag))
 
-	RemoveContents(MacUnmountedPath)
+	err = RemoveContents(MacUnmountedPath)
+	assert.Nil(t, err)
 }
 
 func RemoveContents(dir string) error {
@@ -120,7 +122,7 @@ func RemoveContents(dir string) error {
 
 func WriteTestContent(path string) string {
 	d1 := []byte(`{"mountfile": "tmp/ecloudcsiplugin.json","runtime":"runv"}`)
-	os.MkdirAll(path, 0777)
+	_ = os.MkdirAll(path, 0777)
 	fileName := fmt.Sprintf("%s/%s", path, CsiPluginRunTimeFlagFile)
 	err := os.WriteFile(fileName, d1, 0644)
 	if err != nil {

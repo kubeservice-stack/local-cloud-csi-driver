@@ -253,7 +253,7 @@ func (ns *nodeServer) NodePublishVolume(ctx context.Context, req *csi.NodePublis
 	}
 
 	// xfs filesystem works on targetpath.
-	if volumeNewCreated == false {
+	if !volumeNewCreated {
 		if err := ns.resizeVolume(ctx, volumeID, vgName, targetPath); err != nil {
 			return nil, status.Error(codes.Internal, err.Error())
 		}

@@ -29,9 +29,6 @@ type LVM struct {
 	idServer         *identityServer
 	nodeServer       csi.NodeServer
 	controllerServer *controllerServer
-
-	cap   []*csi.VolumeCapability_AccessMode
-	cscap []*csi.ControllerServiceCapability
 }
 
 const (
