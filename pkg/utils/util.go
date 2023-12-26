@@ -23,7 +23,6 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
@@ -105,8 +104,7 @@ const (
 	socketPath = "/host/etc/csi-tool/connector.sock"
 )
 
-// KubernetesAlicloudIdentity set a identity label
-var KubernetesAlicloudIdentity = fmt.Sprintf("Kubernetes.Alicloud/CsiPlugin")
+var KubernetesAlicloudIdentity = "Kubernetes.Alicloud/CsiPlugin"
 
 var (
 	// NodeAddrMap map for NodeID and its Address
@@ -190,7 +188,7 @@ type CommandRunFunc func(cmd string) (string, error)
 func Run(cmd string) (string, error) {
 	out, err := exec.Command("sh", "-c", cmd).CombinedOutput()
 	if err != nil {
-		return "", fmt.Errorf("Failed to run cmd: " + cmd + ", with out: " + string(out) + ", with error: " + err.Error())
+		return "", fmt.Errorf("failed to run cmd: " + cmd + ", with out: " + string(out) + ", with error: " + err.Error())
 	}
 	return string(out), nil
 }
@@ -344,7 +342,7 @@ func GetMetaData(resource string) (string, error) {
 		return "", err
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", err
 	}
@@ -379,7 +377,7 @@ func GetRegionIDAndInstanceID(nodeName string) (string, string, error) {
 // ReadJSONFile return a json object
 func ReadJSONFile(file string) (map[string]string, error) {
 	jsonObj := map[string]string{}
-	raw, err := ioutil.ReadFile(file)
+	raw, err := os.ReadFile(file)
 	if err != nil {
 		return nil, err
 	}
@@ -472,7 +470,7 @@ func GetFileContent(fileName string) string {
 	if !IsFileExisting(volumeFile) {
 		return ""
 	}
-	value, err := ioutil.ReadFile(volumeFile)
+	value, err := os.ReadFile(volumeFile)
 	if err != nil {
 		return ""
 	}
@@ -491,7 +489,7 @@ func WriteJSONFile(obj interface{}, file string) error {
 		}
 	}
 	rankingsJSON, _ := json.Marshal(maps)
-	if err := ioutil.WriteFile(file, rankingsJSON, 0644); err != nil {
+	if err := os.WriteFile(file, rankingsJSON, 0644); err != nil {
 		return err
 	}
 	return nil
@@ -576,7 +574,10 @@ func Ping(ipAddress string) (*ping.Statistics, error) {
 	pinger.SetPrivileged(true)
 	pinger.Count = 1
 	pinger.Timeout = time.Second * 2
-	pinger.Run()
+	err = pinger.Run()
+	if err != nil {
+		return nil, err
+	}
 	stats := pinger.Statistics()
 	return stats, nil
 }
@@ -591,7 +592,7 @@ func IsDirTmpfs(path string) bool {
 	return false
 }
 
-// WriteAndSyncFile behaves just like ioutil.WriteFile in the standard library,
+// WriteAndSyncFile behaves just like os.WriteFile in the standard library,
 // but calls Sync before closing the file. WriteAndSyncFile guarantees the data
 // is synced if there is no error returned.
 func WriteAndSyncFile(filename string, data []byte, perm os.FileMode) error {
@@ -644,8 +645,8 @@ func GetNodeIP(client kubernetes.Interface, nodeID string) (net.IP, error) {
 	}
 	addresses := node.Status.Addresses
 	addressMap := make(map[v1.NodeAddressType][]v1.NodeAddress)
-	for i := range addresses {
-		addressMap[addresses[i].Type] = append(addressMap[addresses[i].Type], addresses[i])
+	for _, v := range addresses {
+		addressMap[v.Type] = append(addressMap[v.Type], v)
 	}
 	if addresses, ok := addressMap[v1.NodeInternalIP]; ok {
 		SetNodeAddrMap(nodeID, addresses[0].Address)
@@ -655,13 +656,17 @@ func GetNodeIP(client kubernetes.Interface, nodeID string) (net.IP, error) {
 		SetNodeAddrMap(nodeID, addresses[0].Address)
 		return net.ParseIP(addresses[0].Address), nil
 	}
-	return nil, fmt.Errorf("Node IP unknown; known addresses: %v", addresses)
+	return nil, fmt.Errorf("node ip unknown; known addresses: %v", addresses)
 }
 
 // CheckParameterValidate is check parameter validating in csi-plugin
 func CheckParameterValidate(inputs []string) bool {
 	for _, input := range inputs {
-		if matched, err := regexp.MatchString("^[A-Za-z0-9=._@:~/-]*$", input); err != nil || !matched {
+		re, err := regexp.Compile(`^[A-Za-z0-9=._@:~/-]*$`)
+		if err != nil {
+			return false
+		}
+		if matched := re.MatchString(input); !matched {
 			return false
 		}
 	}
@@ -731,7 +736,7 @@ func ConnectorRun(cmd string) (string, error) {
 	}
 
 	buf := make([]byte, 2048)
-	n, err := c.Read(buf[:])
+	n, _ := c.Read(buf[:])
 	response := string(buf[0:n])
 	if strings.HasPrefix(response, "Success") {
 		respstr := response[8:]
@@ -752,7 +757,7 @@ func AppendJSONData(dataFilePath string, appData map[string]string) error {
 		}
 	}
 	rankingsJSON, _ := json.Marshal(curData)
-	if err := ioutil.WriteFile(dataFilePath, rankingsJSON, 0644); err != nil {
+	if err := os.WriteFile(dataFilePath, rankingsJSON, 0644); err != nil {
 		return err
 	}
 
@@ -786,12 +791,12 @@ func IsKataInstall() bool {
 func IsPathAvailiable(path string) error {
 	f, err := os.Open(path)
 	if err != nil {
-		return fmt.Errorf("Open Path (%s) with error: %v ", path, err)
+		return fmt.Errorf("open path (%s) with error: %v ", path, err)
 	}
 	defer f.Close()
 	_, err = f.Readdirnames(1)
 	if err != nil && err != io.EOF {
-		return fmt.Errorf("Read Path (%s) with error: %v ", path, err)
+		return fmt.Errorf("read path (%s) with error: %v ", path, err)
 	}
 	return nil
 }

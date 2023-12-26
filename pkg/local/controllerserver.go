@@ -54,7 +54,7 @@ func (cs *controllerServer) CreateVolume(ctx context.Context, req *csi.CreateVol
 	}
 
 	volumeID := req.GetName()
-	response := &csi.CreateVolumeResponse{}
+	var response *csi.CreateVolumeResponse
 
 	// Get nodeID if pvc in topology mode.
 	nodeID := pickNodeID(req.GetAccessibilityRequirements())

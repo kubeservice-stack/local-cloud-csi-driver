@@ -17,7 +17,6 @@ limitations under the License.
 package om
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -61,7 +60,7 @@ func FixOrphanedPodIssue(line string) bool {
 
 	// check kubernetes csi volumes
 	csiPodPath := filepath.Join(utils.KubeletRootDir, "/pods", orphanUID, "volumes/kubernetes.io~csi")
-	volumes, err := ioutil.ReadDir(csiPodPath)
+	volumes, err := os.ReadDir(csiPodPath)
 	if err != nil {
 		log.Warnf("OrphanPod: List Volumes with error: %s, line: %s", err.Error(), line)
 		return false

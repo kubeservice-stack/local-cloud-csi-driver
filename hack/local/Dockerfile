@@ -1,5 +1,5 @@
 # Build the manager binary
-FROM golang:1.18.5-alpine as builder
+FROM golang:1.19.13-alpine as builder
 
 MAINTAINER dongjiang1989@126.com
 LABEL blog="https://kubeservice.cn"

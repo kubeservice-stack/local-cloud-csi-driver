@@ -34,7 +34,7 @@ import (
 )
 
 func init() {
-	flag.Set("logtostderr", "true")
+	_ = flag.Set("logtostderr", "true")
 }
 
 const (
@@ -60,12 +60,9 @@ const (
 )
 
 var (
-	endpoint        = flag.String("endpoint", "unix://tmp/csi.sock", "CSI endpoint")
-	nodeID          = flag.String("nodeid", "", "node id")
-	runAsController = flag.Bool("run-as-controller", false, "Only run as controller service")
-	driver          = flag.String("driver", TypePluginLocal, "CSI Driver")
-	// Deprecated: rootDir is instead by KUBELET_ROOT_DIR env.
-	rootDir = flag.String("rootdir", "/var/lib/kubelet/csi-plugins", "Kubernetes root directory")
+	endpoint = flag.String("endpoint", "unix://tmp/csi.sock", "CSI endpoint")
+	nodeID   = flag.String("nodeid", "", "node id")
+	driver   = flag.String("driver", TypePluginLocal, "CSI Driver")
 )
 
 // CSI Plugin
@@ -162,7 +159,7 @@ func setLogAttribute(driver string) {
 		return
 	}
 
-	os.MkdirAll(LogfilePrefix, os.FileMode(0755))
+	_ = os.MkdirAll(LogfilePrefix, os.FileMode(0755))
 	logFile := LogfilePrefix + driver + ".log"
 	f, err := os.OpenFile(logFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
@@ -174,7 +171,10 @@ func setLogAttribute(driver string) {
 		f.Close()
 		timeStr := time.Now().Format("-2006-01-02-15:04:05")
 		timedLogfile := LogfilePrefix + driver + timeStr + ".log"
-		os.Rename(logFile, timedLogfile)
+		err = os.Rename(logFile, timedLogfile)
+		if err != nil {
+			os.Exit(1)
+		}
 		f, err = os.OpenFile(logFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 		if err != nil {
 			os.Exit(1)
@@ -191,5 +191,5 @@ func setLogAttribute(driver string) {
 func healthHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	message := "Liveness probe is OK, time:" + time.Now().String()
-	w.Write([]byte(message))
+	_, _ = w.Write([]byte(message))
 }

@@ -19,7 +19,7 @@ package lvm
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os/exec"
 	"path/filepath"
@@ -42,7 +42,7 @@ const (
 )
 
 // ErrParse is an error that is returned when parse operation fails
-var ErrParse = errors.New("Cannot parse output of blkid")
+var ErrParse = errors.New("cannot parse output of blkid")
 
 // GetMetaData get host regionid, zoneid
 func GetMetaData(resource string) string {
@@ -51,7 +51,7 @@ func GetMetaData(resource string) string {
 		return ""
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return ""
 	}
@@ -96,18 +96,6 @@ func checkFSType(devicePath string) (string, error) {
 		}
 	}
 	return "", ErrParse
-}
-
-func isVgExist(vgName string) (bool, error) {
-	vgCmd := fmt.Sprintf("%s vgdisplay %s | grep 'VG Name' | grep %s | grep -v grep | wc -l", NsenterCmd, vgName, vgName)
-	vgline, err := utils.Run(vgCmd)
-	if err != nil {
-		return false, err
-	}
-	if strings.TrimSpace(vgline) == "1" {
-		return true, nil
-	}
-	return false, nil
 }
 
 func getLocalDeviceNum() (int, error) {
