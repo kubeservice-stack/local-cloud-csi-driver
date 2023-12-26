@@ -42,7 +42,7 @@ const (
 )
 
 // ErrParse is an error that is returned when parse operation fails
-var ErrParse = errors.New("Cannot parse output of blkid")
+var ErrParse = errors.New("cannot parse output of blkid")
 
 // GetMetaData get host regionid, zoneid
 func GetMetaData(resource string) string {
