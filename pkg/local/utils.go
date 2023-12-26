@@ -19,7 +19,7 @@ package lvm
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os/exec"
 	"path/filepath"
@@ -51,7 +51,7 @@ func GetMetaData(resource string) string {
 		return ""
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return ""
 	}
