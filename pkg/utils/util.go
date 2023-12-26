@@ -188,7 +188,7 @@ type CommandRunFunc func(cmd string) (string, error)
 func Run(cmd string) (string, error) {
 	out, err := exec.Command("sh", "-c", cmd).CombinedOutput()
 	if err != nil {
-		return "", fmt.Errorf("Failed to run cmd: " + cmd + ", with out: " + string(out) + ", with error: " + err.Error())
+		return "", fmt.Errorf("failed to run cmd: " + cmd + ", with out: " + string(out) + ", with error: " + err.Error())
 	}
 	return string(out), nil
 }
@@ -791,12 +791,12 @@ func IsKataInstall() bool {
 func IsPathAvailiable(path string) error {
 	f, err := os.Open(path)
 	if err != nil {
-		return fmt.Errorf("Open Path (%s) with error: %v ", path, err)
+		return fmt.Errorf("open path (%s) with error: %v ", path, err)
 	}
 	defer f.Close()
 	_, err = f.Readdirnames(1)
 	if err != nil && err != io.EOF {
-		return fmt.Errorf("Read Path (%s) with error: %v ", path, err)
+		return fmt.Errorf("read path (%s) with error: %v ", path, err)
 	}
 	return nil
 }
