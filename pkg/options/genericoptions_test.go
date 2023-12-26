@@ -9,7 +9,8 @@ import (
 
 func TestFlag(t *testing.T) {
 	assert := assert.New(t)
-	flag.Set("kubeconfig", "aa")
+	err := flag.Set("kubeconfig", "aa")
+	assert.Nil(err)
 	assert.Equal("aa", Kubeconfig)
 	assert.Equal("", MasterURL)
 }

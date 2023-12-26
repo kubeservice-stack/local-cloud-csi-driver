@@ -23,7 +23,6 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
@@ -344,7 +343,7 @@ func GetMetaData(resource string) (string, error) {
 		return "", err
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", err
 	}
@@ -379,7 +378,7 @@ func GetRegionIDAndInstanceID(nodeName string) (string, string, error) {
 // ReadJSONFile return a json object
 func ReadJSONFile(file string) (map[string]string, error) {
 	jsonObj := map[string]string{}
-	raw, err := ioutil.ReadFile(file)
+	raw, err := os.ReadFile(file)
 	if err != nil {
 		return nil, err
 	}
@@ -472,7 +471,7 @@ func GetFileContent(fileName string) string {
 	if !IsFileExisting(volumeFile) {
 		return ""
 	}
-	value, err := ioutil.ReadFile(volumeFile)
+	value, err := os.ReadFile(volumeFile)
 	if err != nil {
 		return ""
 	}
@@ -491,7 +490,7 @@ func WriteJSONFile(obj interface{}, file string) error {
 		}
 	}
 	rankingsJSON, _ := json.Marshal(maps)
-	if err := ioutil.WriteFile(file, rankingsJSON, 0644); err != nil {
+	if err := os.WriteFile(file, rankingsJSON, 0644); err != nil {
 		return err
 	}
 	return nil
@@ -576,7 +575,10 @@ func Ping(ipAddress string) (*ping.Statistics, error) {
 	pinger.SetPrivileged(true)
 	pinger.Count = 1
 	pinger.Timeout = time.Second * 2
-	pinger.Run()
+	err = pinger.Run()
+	if err != nil {
+		return nil, err
+	}
 	stats := pinger.Statistics()
 	return stats, nil
 }
@@ -591,7 +593,7 @@ func IsDirTmpfs(path string) bool {
 	return false
 }
 
-// WriteAndSyncFile behaves just like ioutil.WriteFile in the standard library,
+// WriteAndSyncFile behaves just like os.WriteFile in the standard library,
 // but calls Sync before closing the file. WriteAndSyncFile guarantees the data
 // is synced if there is no error returned.
 func WriteAndSyncFile(filename string, data []byte, perm os.FileMode) error {
@@ -752,7 +754,7 @@ func AppendJSONData(dataFilePath string, appData map[string]string) error {
 		}
 	}
 	rankingsJSON, _ := json.Marshal(curData)
-	if err := ioutil.WriteFile(dataFilePath, rankingsJSON, 0644); err != nil {
+	if err := os.WriteFile(dataFilePath, rankingsJSON, 0644); err != nil {
 		return err
 	}
 

@@ -34,7 +34,7 @@ import (
 )
 
 func init() {
-	flag.Set("logtostderr", "true")
+	_ = flag.Set("logtostderr", "true")
 }
 
 const (
@@ -174,7 +174,10 @@ func setLogAttribute(driver string) {
 		f.Close()
 		timeStr := time.Now().Format("-2006-01-02-15:04:05")
 		timedLogfile := LogfilePrefix + driver + timeStr + ".log"
-		os.Rename(logFile, timedLogfile)
+		err = os.Rename(logFile, timedLogfile)
+		if err != nil {
+			os.Exit(1)
+		}
 		f, err = os.OpenFile(logFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 		if err != nil {
 			os.Exit(1)
@@ -191,5 +194,5 @@ func setLogAttribute(driver string) {
 func healthHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	message := "Liveness probe is OK, time:" + time.Now().String()
-	w.Write([]byte(message))
+	_, _ = w.Write([]byte(message))
 }

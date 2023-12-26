@@ -18,7 +18,6 @@ package utils
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -82,7 +81,8 @@ func TestWriteJsonFile(t *testing.T) {
 	jsonData.mountfile = "tmp/ecloudcsiplugin.json"
 	jsonData.runtime = "runv"
 
-	os.MkdirAll(MacUnmountedPath, 0777)
+	err := os.MkdirAll(MacUnmountedPath, 0777)
+	assert.Nil(t, err)
 	resultFile := filepath.Join(MacCSIPluginFlag, CsiPluginRunTimeFlagFile)
 	assert.Nil(t, WriteJSONFile(jsonData, resultFile))
 }
@@ -90,7 +90,8 @@ func TestWriteJsonFile(t *testing.T) {
 func TestIsMountPointRunv(t *testing.T) {
 
 	assert.False(t, IsMountPointRunv(MacMountedPath))
-	os.MkdirAll(MacCSIPluginFlag, 0777)
+	err := os.MkdirAll(MacCSIPluginFlag, 0777)
+	assert.Nil(t, err)
 	WriteTestContent(MacCSIPluginFlag)
 	assert.True(t, IsMountPointRunv(MacCSIPluginFlag))
 
@@ -121,7 +122,7 @@ func WriteTestContent(path string) string {
 	d1 := []byte(`{"mountfile": "tmp/ecloudcsiplugin.json","runtime":"runv"}`)
 	os.MkdirAll(path, 0777)
 	fileName := fmt.Sprintf("%s/%s", path, CsiPluginRunTimeFlagFile)
-	err := ioutil.WriteFile(fileName, d1, 0644)
+	err := os.WriteFile(fileName, d1, 0644)
 	if err != nil {
 		panic(err)
 	}
