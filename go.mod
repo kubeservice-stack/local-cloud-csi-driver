@@ -7,7 +7,7 @@ require (
 	github.com/go-ping/ping v0.0.0-20201022122018-3977ed72668a
 	github.com/kata-containers/kata-containers/src/runtime v0.0.0-20230107031948-2c10b371727e
 	github.com/kubernetes-csi/drivers v1.0.2
-	github.com/sirupsen/logrus v1.9.0
+	github.com/sirupsen/logrus v1.9.1
 	github.com/stretchr/testify v1.8.0
 	golang.org/x/net v0.17.0
 	google.golang.org/grpc v1.56.3
